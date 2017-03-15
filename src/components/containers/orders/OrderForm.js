@@ -147,7 +147,7 @@ class OrderForm extends Component {
           </p>
 
 
-          <form onSubmit={ handleSubmit }>
+          <form onSubmit={ handleSubmit(this.props.createOrder) }>
 
             <div className="form-group">
               <label htmlFor="company">Nom de la structure</label>
@@ -280,7 +280,8 @@ OrderForm.propTypes = {
   companies: React.PropTypes.array.isRequired,
   fetchCompanies: React.PropTypes.func.isRequired,
   hubs: React.PropTypes.array.isRequired,
-  fetchHubs: React.PropTypes.func.isRequired
+  fetchHubs: React.PropTypes.func.isRequired,
+  createOrder: React.PropTypes.func.isRequired
 }
 
 const selector = formValueSelector('order');
@@ -297,4 +298,4 @@ function mapStateToProps(state) {
   }
 }
 
-export default connect(mapStateToProps, { fetchCompanies, fetchHubs })(OrderForm);
+export default connect(mapStateToProps, { fetchCompanies, fetchHubs, createOrder })(OrderForm);

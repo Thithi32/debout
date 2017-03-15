@@ -1,6 +1,9 @@
 import express from 'express';
+import bodyParser from 'body-parser';
 
 const app = express();
+app.use(bodyParser.json()); // support json encoded bodies
+app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 
 // PARSING COMPANIES FILE
 let companies = [];
@@ -19,10 +22,17 @@ csv()
   } else {
     console.log('Companies parsed successfully!');
 
-
     // ROUTES
     app.get('/api/companies', (req,res) => {
       res.json({ companies });
+    });
+
+    app.post('/api/order', (req,res) => {
+      console.log(req.body.order);
+      if (req.body.order)
+        res.json({ status: "OK", order: req.body.order });
+      else
+        res.json({ status: "ERROR" });
     });
 
     // START SERVER

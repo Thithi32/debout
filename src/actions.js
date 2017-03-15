@@ -44,8 +44,19 @@ export function fetchHubs() {
   ]));
 }
 
-export function createOrder() {
-  return dispatch => dispatch( {
-    type: CREATE_ORDER
-     });
+export function createOrder( order ) {
+  return dispatch => {
+    console.log(JSON.stringify(order));
+    fetch("/api/order", { 
+      method: "POST", 
+      body: JSON.stringify( { order }),
+      headers: { 'Content-Type': 'application/json' } 
+    })
+      .then(res => res.json())
+      .then(data => dispatch({
+        type: CREATE_ORDER,
+        response: data
+      })
+    )
+  }
 }
