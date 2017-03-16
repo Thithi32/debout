@@ -417,15 +417,6 @@ ul.sidebar .sidebar-list .menu-icon {
 .widget .widget-body {
   padding: 20px;
 }
-.widget .widget-body table thead {
-  background: #fafafa;
-}
-.widget .widget-body table thead * {
-  font-size: 14px !important;
-}
-.widget .widget-body table tbody * {
-  font-size: 13px !important;
-}
 .widget .widget-body .error {
   color: #ff0000;
 }

@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { connect } from "react-redux";
 import { fetchCompanies, fetchHubs, createOrder } from "./../../../actions";
 import { Field, reduxForm, formValueSelector, FormSection } from 'redux-form';
+import OrderFormTable from "./OrderFormTable"
 
 const packs = [
   { nb: 10, shipping: 10 },
@@ -24,15 +25,41 @@ const packs = [
 ];
 
 
+const FormGroupInput = ({ input, label, ...props}) => (
+  <div className="form-group">
+    <label htmlFor={input.name}>{label}</label>
+    <FormInput input={input} {...props} />
+  </div>
+)
+
+const FormInput = ({ input, type, meta: { touched, error }, ...props}) => (
+  <div className={ touched && error && ' error' }>
+    <input type={type} {...input} {...props} />  
+    { touched && error && <div className="form-message"><small>{error}</small></div> }        
+  </div>
+)
+
+const FieldNbProducts = ({ input, price, meta: { touched, error }, ...props}) => (
+  <div className={ touched && error && ' error' }>
+    <select {...input} {...props}>
+        <option key={ 0 } value="0">Choisir le nombre d&#39;exemplaires</option>  
+      { packs.map((pack,i) =>
+        <option key={ i } value={ pack.nb }>{ pack.nb } exemplaires = { pack.nb * price }€</option>  
+      )}
+    </select>
+    { touched && error && <div className="form-message"><small>{error}</small></div> }
+  </div>
+)
+
 class Address extends Component {
   render() {
     return (
       <div>
         <div className="form-group">
           <label htmlFor="address1">{ this.props.title }</label>
-          <Field component="input" className="form-control" type="text" name="address1" placeholder="Ligne 1" />
+          <Field component={FormInput} className="form-control" type="text" name="address1" placeholder="Ligne 1" />
           <Field component="input" className="form-control" type="text" name="address2" placeholder="Ligne 2" />
-          <Field component="input" className="form-control" type="text" name="zipCode" placeholder="Code postal" />
+          <Field component="input" className="form-control" type="text" name="zip" placeholder="Code postal" />
           <Field component="input" className="form-control" type="text" name="city" placeholder="Commune" />
         </div>
       </div>
@@ -44,28 +71,84 @@ class Contact extends Component {
   render() {
     return (
       <div>
-        <div className="form-group">
-          <label htmlFor="contact_name">Nom et prénom de la/du responsable de la commande</label>
-          <Field component="input" className="form-control" type="text" name="contact_name" />
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="contact_email">Email</label>
-          <Field component="input" className="form-control" type="email" name="contact_email" />
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="contact_mobile">Téléphone mobile</label>
-          <Field component="input" className="form-control" type="text" name="contact_mobile" />
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="contact_phone">Téléphone fix</label>
-          <Field component="input" className="form-control" type="text" name="contact_phone" />
-        </div>
+        <Field name="name" label="Nom et prénom de la/du responsable de la commande" component={FormGroupInput} type="text" className="form-control"/>  
+        <Field name="email" label="Email" component={FormGroupInput} type="text" className="form-control"/>  
+        <Field name="mobile" label="Téléphone mobile" component={FormGroupInput} type="text" className="form-control"/>  
+        <Field name="phone" label="Téléphone fixe" component={FormGroupInput} type="text" className="form-control"/>  
       </div>
     )
   }
+}
+
+const fields_validation = [
+  { 
+    name: "company",
+    isRequired: "Le nom de votre structure est obligatoire" 
+  },
+  { 
+    name: "nb_products",
+    greater_than: {
+      value: "0",
+      message: "Veuillez sélectionnez le nombre d'exemplaires désirés" 
+    }
+  },
+  {
+    name: 'contact',
+    fields: [
+      { 
+        name: 'name',
+        isRequired: "Le nom du responsable de la commande est obligatoire" 
+      },
+      { 
+        name: 'email',
+        isRequired: "L'email du responsable de la commande est obligatoire" 
+      }
+    ]
+  },
+  {
+    name: 'invoice_address',
+    fields: [
+      { 
+        name: 'address1',
+        isRequired: "L'adresse de facturation doit contenir au moins une ligne" 
+      },
+      { 
+        name: 'zip',
+        isRequired: "Le code postal de adresse de facturation est obligatoire" 
+      },
+      { 
+        name: 'city',
+        isRequired: "La ville de l'adresse de facturation est obligatoire" 
+      }
+    ]
+  }
+];
+
+const validate = (values) => {
+
+  const checkIsRequired = (fields,values) => {
+    console.log("Check:", values);
+    let errors = {};
+    fields.map((field) => {
+      if (field.fields) {
+          errors[field.name] = checkIsRequired(field.fields,values[field.name] || {});
+      } else {
+        if (field.greater_than) {
+          if (values[field.name] <= field.greater_than.value) {
+            errors[field.name] = field.greater_than.message;
+          }
+        }
+        if (field.isRequired && (!values[field.name] || !values[field.name].trim().length)) {
+          errors[field.name] = field.isRequired;
+        }
+      } 
+    });
+    return errors;
+  }
+
+  const errors = checkIsRequired(fields_validation,values);
+
+  return errors;
 }
 
 class OrderForm extends Component {
@@ -77,18 +160,6 @@ class OrderForm extends Component {
 
   getHubOptions() {
     return this.props.hubs.map((hub, idx) => { return { key: idx, value: hub.name, text: hub.name}; });
-  }
-
-  FieldNbProducts(fieldProps) {
-    let { price, ...other } = fieldProps;
-    return (
-      <Field component="select" {...other}>
-          <option key={ 0 } value="0">Choisir le nombre d&#39;exemplaires</option>  
-        { packs.map((pack,i) =>
-          <option key={ i } value={ pack.nb }>{ pack.nb } exemplaires = { pack.nb * price }€</option>  
-        )}
-      </Field>
-    )
   }
 
   FieldHub(fieldProps) {
@@ -104,7 +175,9 @@ class OrderForm extends Component {
   }
 
   render() {
-    const { handleSubmit, is_ngo, has_hub, hub, nb_products, shipping_option, use_invoice_address, pristine, submitting } = this.props;
+    const { 
+      handleSubmit, company, is_ngo, has_hub, hub, nb_products, shipping_option, use_invoice_address, 
+      pristine, submitting } = this.props;
 
     const price = (is_ngo) ? 0.5 : 1.5;
 
@@ -149,10 +222,7 @@ class OrderForm extends Component {
 
           <form onSubmit={ handleSubmit(this.props.createOrder) }>
 
-            <div className="form-group">
-              <label htmlFor="company">Nom de la structure</label>
-              <Field name="company" component="input" type="text" className="form-control"/>          
-            </div>
+            <Field name="company" label="Nom de la structure" component={FormGroupInput} type="text" className="form-control"/>  
 
             <div className="form-group">
               <div className="checkbox">
@@ -185,12 +255,13 @@ class OrderForm extends Component {
 
               <div className="form-group">
                 <label htmlFor="nb_products">Nombre d&#39;exemplaires</label>
-                <this.FieldNbProducts name="nb_products" className="form-control" price={price}/>
+                <Field name="nb_products" price={price} component={FieldNbProducts} className="form-control"/>  
                 <small>À noter : Un paquet de 25 exemplaires du magazine pèse environ 3,5 kg.</small>
               </div>
 
               { hub_shipping_available &&
                 <div className="form-group">
+                  <label htmlFor="nb_products">Choisir votre mode de livraison</label>
                   <div className="radio">
                     <label>
                       <Field component="input" type="radio" name="shipping_option" value="1" checked={shipping_option_valid==1}/>
@@ -206,15 +277,11 @@ class OrderForm extends Component {
                 </div>
               }
 
-              { !hub_shipping_available &&
-                <div>
-                  Livraison chez vous = { shipping_price }€
-                </div>
-              }
-
-              <div className="total">
-                <h3>Total: { total }€</h3>
-              </div>
+              <OrderFormTable 
+                price={price} 
+                nb_products={nb_products || 0} 
+                shipping_price={ shipping_option_valid == 2 ? 0 : (shipping_price || 0)} 
+                total={total} />
 
             </div>
 
@@ -273,7 +340,11 @@ class OrderForm extends Component {
 }
 
 OrderForm = reduxForm({
-  form: 'order'
+  form: 'order',
+  initialValues: {
+    shipping_option: 2
+  },
+  validate
 }, null, { createOrder })(OrderForm);
 
 OrderForm.propTypes = {
@@ -289,6 +360,7 @@ function mapStateToProps(state) {
   return {
     companies: state.companies,
     hubs: state.hubs,
+    company: selector(state, 'company'),
     is_ngo: selector(state, 'is_ngo'),
     has_hub: selector(state, 'has_hub'),
     hub: selector(state, 'hub'),
