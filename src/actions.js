@@ -25,23 +25,11 @@ export function fetchCompanies() {
 }
 
 export function fetchHubs() {
-  return dispatch => dispatch(setHubs([
-    { name: "Bordeaux (33)" },
-    { name: "Bourges (18)" },
-    { name: "Caen (14)" },
-    { name: "Clermont Ferrand (63)" },
-    { name: "Lille (59)" },
-    { name: "Lyon (69)" },
-    { name: "Marseille (13)" },
-    { name: "Montpellier (34)" },
-    { name: "Nancy (54)" },
-    { name: "Nantes (44)" },
-    { name: "Orléans (45)" },
-    { name: "Poitiers (86)" },
-    { name: "Quetigny (21)" },
-    { name: "Saint-Quentin (02)" },
-    { name: "BeeoTop - Ile-de-France (Clichy)" }
-  ]));
+  return dispatch => {
+    fetch("/api/hubs")
+      .then(res => res.json())
+      .then(data => dispatch(setHubs(data.hubs)));
+  }
 }
 
 export function createOrder( order ) {
