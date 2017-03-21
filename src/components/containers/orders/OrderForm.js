@@ -374,7 +374,7 @@ console.log(company);
     this.props.initialize({ 
       company: company['Raison sociale'], 
       is_ngo:  (company['Type'] === "Association"),
-      has_hub: (company["Asso d'une BAA ?"] !== "non"),
+      has_hub: (company["Asso d'une BA ?"] !== "non"),
       hub,
       nb_products: this.props.nb_products,
       shipping_option: "2",
