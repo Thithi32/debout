@@ -37,6 +37,20 @@
     background-color: #fce8ef;
 }
 
+.widget .panel-default {
+  border: white;
+}
+
+.widget .panel-default .panel-heading {
+  background-color: white;
+  border: none;
+  border-bottom: 2px solid #E6006C;
+}
+
+.widget .title {
+  font-weight: bold;
+  color: #E6006C;  
+}
 
 /****** BOOTSTRAP *****/
 @media (min-width: 992px) {

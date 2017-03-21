@@ -39,18 +39,21 @@ const FormInput = ({ input, type, meta: { touched, error }, ...props}) => (
   </div>
 )
 
-const FormHonorific = ({ input, meta, ...props}) => (
-  <select {...input} {...props} >
-    <option value="M">M</option>
-    <option value="Mme">Mme</option>
-  </select>
+const FormHonorific = ({ input, label, meta, ...props}) => (
+  <div className="form-group">
+    <label htmlFor={input.name}>{label}</label>
+    <select {...input} {...props} >
+      <option value="M">M</option>
+      <option value="Mme">Mme</option>
+    </select>
+  </div>
 )
 
 const Section = (props) => (
   <FormSection name={props.name}>
     <div className="panel panel-default">
       <div className="panel-heading">
-        <h3 className="panel-title">{ props.title }</h3>
+        <h3 className="panel-title title">{ props.title }</h3>
       </div>
       <div className="panel-body">
         {props.children}
@@ -78,10 +81,10 @@ class Address extends Component {
       <FormSection name={name}>
         <div className="form-group">
           <label htmlFor="address1">{ this.props.title }</label>
-          <Field component={FormInput} onChange={(e)=>{ this.props.onChange(e); }} className="form-control" type="text" name="address1" placeholder="Ligne 1" disabled={this.props.disabled} />
+          <Field component={FormInput} onChange={(e)=>{ this.props.onChange(e); }} className="form-control" type="text" name="address1" placeholder="Ligne 1 *" disabled={this.props.disabled} />
           <Field component={FormInput} onChange={(e)=>{ this.props.onChange(e); }} className="form-control" type="text" name="address2" placeholder="Ligne 2" disabled={this.props.disabled} />
-          <Field component={FormInput} onChange={(e)=>{ this.props.onChange(e); }} className="form-control" type="text" name="zip" placeholder="Code postal" disabled={this.props.disabled} />
-          <Field component={FormInput} onChange={(e)=>{ this.props.onChange(e); }} className="form-control" type="text" name="city" placeholder="Commune" disabled={this.props.disabled} />
+          <Field component={FormInput} onChange={(e)=>{ this.props.onChange(e); }} className="form-control" type="text" name="zip" placeholder="Code postal *" disabled={this.props.disabled} />
+          <Field component={FormInput} onChange={(e)=>{ this.props.onChange(e); }} className="form-control" type="text" name="city" placeholder="Commune *" disabled={this.props.disabled} />
         </div>
       </FormSection>
     )
@@ -117,11 +120,16 @@ class AddressDisable extends Component {
 class Contact extends Component {
   render() {
     const name = this.props.name || 'contact';
+    const title = this.props.title;
     return (
       <FormSection name={name}>
-        <Field name="honorific" onChange={(e)=>{ this.props.onChange(e); }} component={FormHonorific} disabled={this.props.disabled} className="form-control"/>
-        <Field name="name" onChange={(e)=>{ this.props.onChange(e); }} label="Nom et prénom de la/du responsable de la commande" disabled={this.props.disabled} component={FormGroupInput} type="text" className="form-control"/>  
-        <Field name="email" onChange={(e)=>{ this.props.onChange(e); }} label="Email" disabled={this.props.disabled} component={FormGroupInput} type="text" className="form-control"/>  
+        { title &&
+          <p className="title">{title}</p>
+        }
+        <Field name="honorific" onChange={(e)=>{ this.props.onChange(e); }} label="Civilité" component={FormHonorific} disabled={this.props.disabled} className="form-control"/>
+        <Field name="name" onChange={(e)=>{ this.props.onChange(e); }} label="Nom *" disabled={this.props.disabled} component={FormGroupInput} type="text" className="form-control"/>  
+        <Field name="firstname" onChange={(e)=>{ this.props.onChange(e); }} label="Prénom" disabled={this.props.disabled} component={FormGroupInput} type="text" className="form-control"/>  
+        <Field name="email" onChange={(e)=>{ this.props.onChange(e); }} label="Email *" disabled={this.props.disabled} component={FormGroupInput} type="text" className="form-control"/>  
         <Field name="mobile" onChange={(e)=>{ this.props.onChange(e); }} label="Téléphone mobile" disabled={this.props.disabled} component={FormGroupInput} type="text" className="form-control"/>  
         <Field name="phone" onChange={(e)=>{ this.props.onChange(e); }} label="Téléphone fixe" disabled={this.props.disabled} component={FormGroupInput} type="text" className="form-control"/>  
       </FormSection>
@@ -131,23 +139,23 @@ class Contact extends Component {
 
 class ContactDisable extends Component {
   render() {
-    const disabled = this.props.disabled;
+    const { disabled, ...props } = this.props;
     return (
       <div>
         { !disabled &&
           <div>
-            <Contact />
+            <Contact { ...props } />
             <div className="hide">
-              <Contact name="contact_disabled" disabled />
+              <Contact name="contact_disabled" disabled { ...props } />
             </div>
           </div>
         }
         { disabled &&
           <div>
             <div className="hide">
-              <Contact />
+              <Contact { ...props } />
             </div>
-            <Contact name="contact_disabled" disabled />
+            <Contact name="contact_disabled" disabled { ...props } />
           </div>
         }
       </div>
@@ -169,32 +177,90 @@ const fields_validation = [
     }
   },
   {
-    name: 'contact',
-    fields: [
-      { 
-        name: 'name',
-        isRequired: "Le nom du responsable de la commande est obligatoire" 
-      },
-      { 
-        name: 'email',
-        isRequired: "L'email du responsable de la commande est obligatoire" 
+    name: 'order',
+    fields:  [
+      {
+        name: 'contact',
+        fields: [
+          { 
+            name: 'name',
+            isRequired: "Le nom du responsable de la commande est obligatoire" 
+          },
+          { 
+            name: 'email',
+            isRequired: "L'email du responsable de la commande est obligatoire" 
+          }
+        ]
       }
     ]
   },
   {
-    name: 'invoice_address',
+    name: 'invoice',
     fields: [
-      { 
-        name: 'address1',
-        isRequired: "L'adresse de facturation doit contenir au moins une ligne" 
+      {
+        name: 'address',
+        fields: [
+          { 
+            name: 'address1',
+            isRequired: "L'adresse de facturation doit contenir au moins une ligne" 
+          },
+          { 
+            name: 'zip',
+            isRequired: "Le code postal de l'adresse de facturation est obligatoire" 
+          },
+          { 
+            name: 'city',
+            isRequired: "La ville de l'adresse de facturation est obligatoire" 
+          }
+        ]
       },
-      { 
-        name: 'zip',
-        isRequired: "Le code postal de adresse de facturation est obligatoire" 
+      {
+        name: 'contact',
+        fields: [
+          { 
+            name: 'name',
+            isRequired: "Le nom du responsable de la facturation est obligatoire" 
+          },
+          { 
+            name: 'email',
+            isRequired: "L'email du responsable de la facturation est obligatoire" 
+          }
+        ]
+      }
+    ]
+  },
+  {
+    name: 'shipping',
+    fields: [
+      {
+        name: 'address',
+        fields: [
+          { 
+            name: 'address1',
+            isRequired: "L'adresse de livraison doit contenir au moins une ligne" 
+          },
+          { 
+            name: 'zip',
+            isRequired: "Le code postal de l'adresse de livraison est obligatoire" 
+          },
+          { 
+            name: 'city',
+            isRequired: "La ville de l'adresse de livraison est obligatoire" 
+          }
+        ]
       },
-      { 
-        name: 'city',
-        isRequired: "La ville de l'adresse de facturation est obligatoire" 
+      {
+        name: 'contact',
+        fields: [
+          { 
+            name: 'name',
+            isRequired: "Le nom du responsable de la réception de la livraison est obligatoire" 
+          },
+          { 
+            name: 'email',
+            isRequired: "L'email du responsable de la réception de la livraison est obligatoire" 
+          }
+        ]
       }
     ]
   }
@@ -241,7 +307,7 @@ class OrderForm extends Component {
   getHubOptions() {
     return this.props.hubs.map((hub, idx) => { 
       let name = hub['NOM 1'] + " " + hub['NOM 2']; 
-      return { key: idx, value: hub['BA'], text: name}; 
+      return { key: idx, value: name, text: name}; //hub['BA']
     });
   }
 
@@ -267,35 +333,63 @@ class OrderForm extends Component {
   }
 
   selectCompany(company) {
-
+console.log(company);
     let invoice_address = {
         address1: company["(facture)\nAdresse"],
-        address2: '',
+        address2: '  ',
         zip: company["(facture)\nCP"],
         city: company["(facture)\nVille"]
     }
-    let has_invoice_address = (!invoice_address.address1 && !invoice_address.zip && !invoice_address.city);
+    const has_invoice_address = invoice_address.address1 && invoice_address.zip && invoice_address.city;
 
     let shipping_address = {
       address1: company["(livraison)\nAdresse 1"],
-      address2: company["(livraison)\nAdresse 2"],
+      address2: company["(livraison)\nAdresse 2"] || "  ",
       zip: company["(livraison)\nCP"],
       city: company["(livraison)\nVille"]
     }
-    let has_shipping_address = (!shipping_address.address1 && !shipping_address.zip && !shipping_address.city);
+    const has_shipping_address = shipping_address.address1 && shipping_address.zip && shipping_address.city;
 
-    if (has_shipping_address && !has_invoice_address) invoice_address = shipping_address;
-    if (!has_shipping_address && has_invoice_address) shipping_address = invoice_address;
+    let invoice_contact = {
+        honorific: company["(facture)\nCivilité"],
+        name: company["(facture)\nNom"],
+        email: company["(facture)\nMail"],
+        mobile: company["(facture)\nportable"],
+        phone: company["(facture)\nfixe"] || company["(facture)\nfixe "]
+    }
+    const has_invoice_contact = invoice_contact.name && invoice_contact.email;
 
-    if (!has_shipping_address && !has_invoice_address) has_invoice_address = has_shipping_address = {};
+    let shipping_contact = {
+        honorific: company["(livraison)\nCivilité"],
+        name: company["(livraison)\nNom"],
+        firstname: company["(livraison)\nPrénom"],
+        email: company["(livraison)\nMail"],
+        mobile: company["(livraison)\nportable"],
+        phone: company["(livraison)\nfixe"] || company["(livraison)\nfixe "]
+    }
+    const has_shipping_contact = shipping_contact.name && shipping_contact.email;
+
+    const hub = (this.props.hubs.find((hub) => { return (hub['NOM 1'] + ' ' + hub['NOM 2']) === company['Livraison via hub']})) ? company['Livraison via hub'] : '';
 
     this.props.initialize({ 
       company: company['Raison sociale'], 
       is_ngo:  (company['Type'] === "Association"),
-      is_hub: (company["Asso d'une BAA ?"] === "non"),
+      has_hub: (company["Asso d'une BAA ?"] !== "non"),
+      hub,
       nb_products: this.props.nb_products,
-      invoice_address,
-      shipping_address
+      shipping_option: "2",
+      shipping: {
+        address: shipping_address,
+        contact: shipping_contact,
+        use_contact_for_shipping: !has_shipping_contact  
+      },
+      invoice: {
+        address: invoice_address,
+        address_disabled: shipping_address,
+        use_shipping_address: has_shipping_address && !has_invoice_address,
+        contact: invoice_contact,
+        use_contact_for_invoice: !has_invoice_contact
+      }
     },false)
 
     this.setState({company_autocomplete: {}});
@@ -315,12 +409,16 @@ class OrderForm extends Component {
     const home_delivery = !hub_shipping_available || (parseInt(shipping_option) === 1);
 
     let shipping_price = 0;
-    if (home_delivery) {
+    let shipping_home_price = 0;
+    if (parseInt(nb_products, 10) > 0) {
       for (var i = 0; i < packs.length; i++) {
         if (packs[i].nb === parseInt(nb_products, 10)) {
-          shipping_price = packs[i].shipping;
+          shipping_home_price = packs[i].shipping;
         }
       }
+    }
+    if (home_delivery) {
+      shipping_price = shipping_home_price;
     }
 
     let total = nb_products * price + shipping_price;
@@ -404,7 +502,7 @@ class OrderForm extends Component {
                   <div className="radio">
                     <label>
                       <Field component="input" type="radio" name="shipping_option" value="1"/>
-                       Option 1: Livraison chez vous = { shipping_price }€
+                       Option 1: Livraison chez vous = { shipping_home_price }€
                     </label>
                   </div>
                   <div className="radio">
@@ -453,8 +551,7 @@ class OrderForm extends Component {
                       </div>
                     </div>
 
-                    <ContactDisable disabled={use_contact_for_shipping}/>
-
+                    <ContactDisable disabled={use_contact_for_shipping} title="Responsable de la réception"/>
  
                   </Section>
                 }
@@ -483,11 +580,16 @@ class OrderForm extends Component {
                     </div>
                   </div>
 
-                  <ContactDisable disabled={use_contact_for_invoice}/>
+                  <ContactDisable disabled={use_contact_for_invoice} title="Responsable de la facture"/>
 
                 </Section>
 
                 <div>
+                  <p>
+                    <small>
+                    * : information obligatoire
+                    </small>
+                  </p>
                   <p>
                     <small>
                       En envoyant ce bon de commande, je m’engage
